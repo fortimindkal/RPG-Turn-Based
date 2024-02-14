@@ -14,5 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   name: Player
   hp: 50
+  level: 5
   damage: 20
   image: {fileID: 21300000, guid: a0824e9f19e43144dbed1aac026e86ae, type: 3}

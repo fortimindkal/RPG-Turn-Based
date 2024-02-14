@@ -33,8 +33,13 @@ public class GameManager : MonoBehaviour
     [Header("Battle Interface")]
     [SerializeField] private Button attackButton;
     [SerializeField] private Button defendButton;
+    [SerializeField] private ResultController resultMenu;
 
-    [SerializeField] private GameState currentState;
+    [Header("Battle Rewards")]
+    public int goldRewards;
+    public int expRewards;
+
+    public GameState currentState;
 
     // Start is called before the first frame update
     void Start()
@@ -52,6 +57,9 @@ public class GameManager : MonoBehaviour
     IEnumerator SetupBattle()
     {
         DisableBattleButton();
+        goldRewards = 0;
+        expRewards = 0;
+
 
         GameObject player = Instantiate(playerPrefab, playerPosition);
         player.GetComponent<UnitController>();
@@ -148,12 +156,14 @@ public class GameManager : MonoBehaviour
     {
         if(currentState == GameState.Won)
         {
+            BattleRewards();
             Debug.Log("You have won the battle.");
         }
         else if(currentState == GameState.Lost)
         {
             Debug.Log("You have lost the battle.");
         }
+        resultMenu.ShowResultMenu(this);
     }
 
     void PlayerTurn()
@@ -188,5 +198,11 @@ public class GameManager : MonoBehaviour
     {
         attackButton.interactable = false;
         defendButton.interactable = false;
+    }
+
+    void BattleRewards()
+    {
+        goldRewards = 5 * enemyUnit.unit.level;
+        expRewards = 20 * enemyUnit.unit.level;
     }
 }
