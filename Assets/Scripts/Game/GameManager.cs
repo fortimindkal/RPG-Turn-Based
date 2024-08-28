@@ -14,6 +14,8 @@ public enum GameState
 
 public class GameManager : MonoBehaviour
 {
+    public static GameManager Instance { get; private set; }
+
     [Header("Unit Prefabs")]
     [SerializeField] private GameObject playerPrefab;
     [SerializeField] private GameObject enemyPrefab;
@@ -30,9 +32,15 @@ public class GameManager : MonoBehaviour
     [SerializeField] private HUDController playerHUD;
     [SerializeField] private HUDController enemyHUD;
 
+    [Header("")]
+    [SerializeField] private GameObject playerParticle;
+    [SerializeField] private GameObject enemyParticle;
+
     [Header("Battle Interface")]
     [SerializeField] private Button attackButton;
     [SerializeField] private Button defendButton;
+    [SerializeField] private Button skillButton;
+    [SerializeField] private SkillController skillController;
     [SerializeField] private ResultController resultMenu;
 
     [Header("Battle Rewards")]
@@ -48,10 +56,20 @@ public class GameManager : MonoBehaviour
         StartCoroutine(SetupBattle());
     }
 
-    // Update is called once per frame
-    void Update()
+    void Awake()
     {
-        
+        // Check if an instance already exists
+        if (Instance == null)
+        {
+            // If not, set the instance to this
+            Instance = this;
+        }
+        else
+        {
+            // If instance already exists, destroy this GameObject
+            Destroy(gameObject);
+            return;
+        }
     }
 
     IEnumerator SetupBattle()
@@ -60,7 +78,6 @@ public class GameManager : MonoBehaviour
         goldRewards = 0;
         expRewards = 0;
 
-
         GameObject player = Instantiate(playerPrefab, playerPosition);
         player.GetComponent<UnitController>();
 
@@ -68,7 +85,9 @@ public class GameManager : MonoBehaviour
         enemy.GetComponent<UnitController>();
 
         playerHUD.SetHUD(playerUnit);
+        Debug.Log(playerUnit.GetHP());
         enemyHUD.SetHUD(enemyUnit);
+        Debug.Log(enemyUnit.GetHP());
 
         yield return new WaitForSeconds(2f);
 
@@ -85,9 +104,13 @@ public class GameManager : MonoBehaviour
         bool isDead = enemyUnit.TakeDamage(playerUnit.GetDamage());
 
         enemyHUD.SetHP(enemyUnit.GetHP());
+        enemyParticle.SetActive(true);
+
         Debug.Log("Attack succesfully");
 
         yield return new WaitForSeconds(2f);
+
+        enemyParticle.SetActive(false);
 
         if (isDead)
         {
@@ -117,11 +140,15 @@ public class GameManager : MonoBehaviour
 
     IEnumerator EnemyTurn()
     {
+        playerParticle.SetActive(true);
+
         Debug.Log("Enemy attack!");
 
         yield return new WaitForSeconds(1f);
 
-        if(!playerUnit.IsDefend())
+        playerParticle.SetActive(false);
+
+        if (!playerUnit.IsDefend())
         {
             bool isDead = playerUnit.TakeDamage(enemyUnit.GetDamage());
 
@@ -188,16 +215,26 @@ public class GameManager : MonoBehaviour
         StartCoroutine(PlayerDefend());
     }
 
+    public void OnSkillButton()
+    {
+        if (currentState != GameState.PlayerTurn)
+            return;
+
+        skillController.ShowSkillsMenu();
+    }
+
     void EnableBattleButton()
     {
         attackButton.interactable = true;
         defendButton.interactable = true;
+        skillButton.interactable = true;
     }
 
     void DisableBattleButton()
     {
         attackButton.interactable = false;
         defendButton.interactable = false;
+        skillButton.interactable = false;
     }
 
     void BattleRewards()
